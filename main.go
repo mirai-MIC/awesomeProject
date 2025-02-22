@@ -27,16 +27,13 @@ func LoadConfig(filename string) (Config, error) {
 }
 
 func main() {
-<<<<<<< HEAD
-    getTime()
-    new1()
-=======
+	getTime()
+	new1()
 	config, err := LoadConfig("config.json")
 	if err != nil {
 		panic(err)
 	}
 	println("Port:", config.Port, "Env:", config.Env)
->>>>>>> f13322963009b7a7f25d44dc3019ece1d1b30650
 }
 func getTime() {
 	t := time.Now()

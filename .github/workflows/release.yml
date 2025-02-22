@@ -1,0 +1,55 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+        branches:
+            - "release/**"
+
+jobs:
+    build-and-release:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: 签出代码
+                uses: actions/checkout@v4
+                with:
+                    fetch-depth: 0
+
+            -   name: 下载 go SDK
+                uses: actions/setup-go@v5
+                with:
+                    go-version: "1.23.6"
+                    cache: true
+
+            -   name: 安装 git-chglog
+                run: |
+                    go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
+                    echo "$HOME/go/bin" >> $GITHUB_PATH
+
+            -   name: 生成 CHANGELOG
+                run: |
+                    git-chglog -c .chglog/config.yml -o CHANGELOG.md $(git describe --tags $(git rev-list --tags --max-count=1))
+
+            -   name: 构建 Windows x86-64
+                run: |
+                    mkdir -p bin
+                    GOOS=windows GOARCH=amd64 go build -o bin/app-windows-amd64.exe .
+                    zip -j bin/app-windows-amd64.zip bin/app-windows-amd64.exe
+
+            -   name: 构建 Linux amd64
+                run: |
+                    GOOS=linux GOARCH=amd64 go build -o bin/app-linux-amd64 .
+                    tar -czvf bin/app-linux-amd64.tar.gz -C bin app-linux-amd64
+
+            -   name: 创建 Release
+                uses: softprops/action-gh-release@v1
+                with:
+                    tag_name: ${{ github.ref_name }}
+                    name: Release ${{ github.ref_name }}
+                    body_path: CHANGELOG.md
+                    files: |
+                        bin/app-windows-amd64.zip
+                        bin/app-linux-amd64.tar.gz
+                env:
+                    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

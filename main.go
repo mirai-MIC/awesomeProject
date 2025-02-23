@@ -4,6 +4,7 @@ import "C"
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"time"
 )
@@ -31,7 +32,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	println("Port:", config.Port, "Env:", config.Env)
+	log.Fatalln("Port:", config.Port, "Env:", config.Env)
 }
 func getTime() {
 	t := time.Now()
